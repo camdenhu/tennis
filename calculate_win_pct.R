@@ -1,3 +1,4 @@
+# Calculate probability of winning a game given probability of winning a point
 CalculateGameWinPct <- function(pointWinPct){
   if(pointWinPct > 0 & pointWinPct < 1){
     pointLosePct <- 1 - pointWinPct
@@ -11,6 +12,7 @@ CalculateGameWinPct <- function(pointWinPct){
   }
 }
 
+# Calculate probability of winning a tiebreak given probability of winning a service point and return point
 CalculateTiebreakWinPct <- function(serveWinPct, returnWinPct){
   if(serveWinPct > 0 & serveWinPct < 1 & returnWinPct > 0 & returnWinPct < 1){
     serveLosePct <- 1 - serveWinPct
@@ -37,6 +39,7 @@ CalculateTiebreakWinPct <- function(serveWinPct, returnWinPct){
   }
 }
 
+# Calculate probability of winning a set given probability of winning a service point and return point
 CalculateSetWinPct <- function(serveWinPct, returnWinPct){
   if(serveWinPct > 0 & serveWinPct < 1 & returnWinPct > 0 & returnWinPct < 1){
     serveGameWinPct <- CalculateGameWinPct(serveWinPct)
@@ -68,14 +71,12 @@ CalculateSetWinPct <- function(serveWinPct, returnWinPct){
   }
 }
 
+# Calculate probability of winning a match given probability of winning a service point and return point
 CalculateMatchWinPct <- function(serveWinPct, returnWinPct, sets=3){
-  if(serveWinPct <= 0 | serveWinPct >= 1 | returnWinPct <= 0 | returnWinPct >= 1){
-    stop("serveWinPct and returnWinPct must be between 0 and 1")
-  } 
-  else if(sets != 3 & sets != 5){
-    stop("set must be 3 or 5")
+  if(sets != 3 & sets != 5){
+    stop("sets must be 3 or 5")
   }
-  else{
+  if(serveWinPct > 0 & serveWinPct < 1 & returnWinPct > 0 & returnWinPct < 1){
     setWinPct <- CalculateSetWinPct(serveWinPct, returnWinPct)
     setLosePct <- 1 - setWinPct
     if(sets == 3){
@@ -86,5 +87,8 @@ CalculateMatchWinPct <- function(serveWinPct, returnWinPct, sets=3){
                 6*setWinPct^3*setLosePct^2
     }
     return(winPct)
+  }
+  else{
+    stop("serveWinPct and returnWinPct must be between 0 and 1")
   }
 }
