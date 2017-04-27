@@ -1,15 +1,11 @@
 # Calculate probability of winning a game given probability of winning a point
 CalculateGameWinPct <- function(pointWinPct){
-  if(pointWinPct > 0 & pointWinPct < 1){
-    pointLosePct <- 1 - pointWinPct
-    winPct <- pointWinPct^4 + 4*pointWinPct^4*pointLosePct + 
-              10*pointWinPct^4*pointLosePct^2 +
-              20*pointWinPct^3*pointLosePct^3*pointWinPct^2/(1-2*pointWinPct*pointLosePct)
-    return(winPct)
-  }
-  else{
-    stop("pointWinPct must be between 0 and 1")
-  }
+  stopifnot(pointWinPct > 0, pointWinPct < 1)
+  pointLosePct <- 1 - pointWinPct
+  winPct <- pointWinPct^4 + 4*pointWinPct^4*pointLosePct + 
+            10*pointWinPct^4*pointLosePct^2 +
+            20*pointWinPct^3*pointLosePct^3*pointWinPct^2/(1-2*pointWinPct*pointLosePct)
+  return(winPct)
 }
 
 # Calculate probability of winning a tiebreak given probability of winning a service point and return point
@@ -41,54 +37,44 @@ CalculateTiebreakWinPct <- function(serveWinPct, returnWinPct){
 
 # Calculate probability of winning a set given probability of winning a service point and return point
 CalculateSetWinPct <- function(serveWinPct, returnWinPct){
-  if(serveWinPct > 0 & serveWinPct < 1 & returnWinPct > 0 & returnWinPct < 1){
-    serveGameWinPct <- CalculateGameWinPct(serveWinPct)
-    returnGameWinPct <- CalculateGameWinPct(returnWinPct)
-    serveGameLosePct <- 1 - serveGameWinPct
-    returnGameLosePct <- 1 - returnGameWinPct
-    rn <- rep(NA,10)
-    for (i in 1:length(rn)){
-      rn[i] <- 5*(serveGameWinPct/serveGameLosePct)^i + 5*(returnGameWinPct/returnGameLosePct)^i
-    }
-    gamesWinPct <- rep(NA,11)
-    gamesWinPct[1] <- serveGameLosePct^5*returnGameLosePct^5
-    for (i in 2:length(gamesWinPct)){
-      intermAns <- rep(NA, i-1)
-      for (x in 1:length(intermAns)){
-        intermAns[x] <- (-1)^(x-1)*rn[x]*gamesWinPct[i-x]
-      }
-      gamesWinPct[i] <- sum(intermAns) / (i-1)
-    }
-    winTwoGames <- serveGameWinPct*returnGameWinPct
-    splitTwoGames <- serveGameWinPct*returnGameLosePct + serveGameLosePct*returnGameWinPct
-    tiebreakWinPct <- CalculateTiebreakWinPct(serveWinPct, returnWinPct)
-    winPct <- sum(gamesWinPct[7:11]) + gamesWinPct[6]*winTwoGames +
-              gamesWinPct[6]*splitTwoGames*tiebreakWinPct
-    return(winPct)
+  stopifnot(serveWinPct > 0, serveWinPct < 1, returnWinPct > 0, returnWinPct < 1)
+  serveGameWinPct <- CalculateGameWinPct(serveWinPct)
+  returnGameWinPct <- CalculateGameWinPct(returnWinPct)
+  serveGameLosePct <- 1 - serveGameWinPct
+  returnGameLosePct <- 1 - returnGameWinPct
+  rn <- rep(NA,10)
+  for (i in 1:length(rn)){
+    rn[i] <- 5*(serveGameWinPct/serveGameLosePct)^i + 5*(returnGameWinPct/returnGameLosePct)^i
   }
-  else{
-    stop("serveWinPct and returnWinPct must be between 0 and 1")
+  gamesWinPct <- rep(NA,11)
+  gamesWinPct[1] <- serveGameLosePct^5*returnGameLosePct^5
+  for (i in 2:length(gamesWinPct)){
+    intermAns <- rep(NA, i-1)
+    for (x in 1:length(intermAns)){
+      intermAns[x] <- (-1)^(x-1)*rn[x]*gamesWinPct[i-x]
+    }
+    gamesWinPct[i] <- sum(intermAns) / (i-1)
   }
+  winTwoGames <- serveGameWinPct*returnGameWinPct
+  splitTwoGames <- serveGameWinPct*returnGameLosePct + serveGameLosePct*returnGameWinPct
+  tiebreakWinPct <- CalculateTiebreakWinPct(serveWinPct, returnWinPct)
+  winPct <- sum(gamesWinPct[7:11]) + gamesWinPct[6]*winTwoGames +
+            gamesWinPct[6]*splitTwoGames*tiebreakWinPct
+  return(winPct)
 }
 
 # Calculate probability of winning a match given probability of winning a service point and return point
 CalculateMatchWinPct <- function(serveWinPct, returnWinPct, sets=3){
-  if(sets != 3 & sets != 5){
-    stop("sets must be 3 or 5")
+  stopifnot(sets == 3 || set == 5, 
+            serveWinPct > 0, serveWinPct < 1, returnWinPct > 0, returnWinPct < 1)
+  setWinPct <- CalculateSetWinPct(serveWinPct, returnWinPct)
+  setLosePct <- 1 - setWinPct
+  if(sets == 3){
+    winPct <- setWinPct^2 + 2*setWinPct^2*setLosePct
   }
-  if(serveWinPct > 0 & serveWinPct < 1 & returnWinPct > 0 & returnWinPct < 1){
-    setWinPct <- CalculateSetWinPct(serveWinPct, returnWinPct)
-    setLosePct <- 1 - setWinPct
-    if(sets == 3){
-      winPct <- setWinPct^2 + 2*setWinPct^2*setLosePct
-    }
-    else if(sets == 5){
-      winPct <- setWinPct^3 + 3*setWinPct^3*setLosePct +
-                6*setWinPct^3*setLosePct^2
-    }
-    return(winPct)
+  else if(sets == 5){
+    winPct <- setWinPct^3 + 3*setWinPct^3*setLosePct +
+              6*setWinPct^3*setLosePct^2
   }
-  else{
-    stop("serveWinPct and returnWinPct must be between 0 and 1")
-  }
+  return(winPct)
 }
